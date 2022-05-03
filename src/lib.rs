@@ -1,9 +1,11 @@
 //! All angles in radians with 0 pointing North
 //! 
 
-pub mod vector;
+pub mod goemetry;
+pub mod aerodynamics;
 
-use vector::Vec2d;
+
+use goemetry::Vec2d;
 use std::f32::consts::PI;
 
 
@@ -29,10 +31,9 @@ impl Wind {
 
     /// Wind direction in degres 0ᵒ = North, 90ᵒ = East
     pub fn direction(&self) -> f32 {
-        let phi =  self.velocity.angle(&Vec2d::new(1.0, 0.));
+        let phi =  self.velocity.dir();
         let alpha = phi / PI * 180.0;
-        let dir = if self.velocity.y > 0. { alpha } else { -alpha };
-        dir
+        alpha
     }
 }
 
@@ -51,8 +52,8 @@ mod tests {
 
     #[test]
     fn wind_dir() {
-        assert_abs_diff_eq!(Wind::new(Vec2d::new(1., 0.)).direction(), 0.);
-        assert_abs_diff_eq!(Wind::new(Vec2d::new(3., 3.)).direction(), 45., epsilon=0.1);
-        assert_abs_diff_eq!(Wind::new(Vec2d::new(-3., -3.)).direction(), -135., epsilon=0.1);
+        assert_abs_diff_eq!(Wind::new(Vec2d::new(1., 0.)).direction(), 0.0);
+        assert_abs_diff_eq!(Wind::new(Vec2d::new(3., 3.)).direction(), 45.0);
+        assert_abs_diff_eq!(Wind::new(Vec2d::new(-3., -3.)).direction(), -135.0);
     }
 }
