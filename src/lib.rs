@@ -4,14 +4,13 @@
 pub mod goemetry;
 pub mod aerodynamics;
 
-
 use goemetry::Vec2d;
 use std::f32::consts::PI;
 
 
 /// Wind vectors have x coordinate pointing North
 pub struct Wind {
-    velocity: Vec2d,
+    pub velocity: Vec2d,
 }
 
 pub struct Sail {
@@ -31,9 +30,13 @@ impl Wind {
 
     /// Wind direction in degres 0ᵒ = North, 90ᵒ = East
     pub fn direction(&self) -> f32 {
-        let phi =  self.velocity.dir();
+        let phi =  self.velocity.phi();
         let alpha = phi / PI * 180.0;
         alpha
+    }
+
+    pub fn speed(&self) -> f32 {
+        self.velocity.r()
     }
 }
 
@@ -43,6 +46,10 @@ impl Sailboat {
     }
 }
 
+
+pub fn apparent_wind(boat_velocity: &Vec2d, wind: &Vec2d) -> Vec2d {
+    boat_velocity.neg().add(wind)
+}
 
 // ----------------------------------------------------------------------------
 #[cfg(test)]

@@ -20,8 +20,9 @@ impl Vec2d {
 
     /// Construct a new Vector from polar coordinates
     pub fn from_polar(r: f32, phi: f32) -> Vec2d {
-        let x = r * f32::cos(phi);
-        let y = r * f32::sin(phi);
+        let rn = r.max(0.);
+        let x = rn * f32::cos(phi);
+        let y = rn * f32::sin(phi);
         Vec2d::new(x, y)
     }
 
@@ -40,14 +41,14 @@ impl Vec2d {
         self.x*other.x + self.y*other.y
     }
 
-    /// Vector norm (Magnitude)
-    pub fn norm(&self) -> f32 {
+    /// Vector length
+    pub fn r(&self) -> f32 {
         f32::sqrt(self.dot(self))
     }
 
     /// Angle in radians between 2 vectors
     pub fn angle(&self, other: &Self) -> f32 {
-        let alpha = self.dir() - other.dir();
+        let alpha = self.phi() - other.phi();
         if alpha > PI {
             alpha - 2.0*PI
         } else if alpha < -PI {
@@ -58,8 +59,18 @@ impl Vec2d {
     }
 
     /// Vector direction. 0,1 == 0
-    pub fn dir(&self) -> f32 {
+    pub fn phi(&self) -> f32 {
         self.y.atan2(self.x)
+    }
+
+    /// rotate vector
+    pub fn rotate(&self, angle: f32) -> Vec2d {
+        Vec2d::from_polar(self.r(), self.phi() + angle)
+    }
+
+    /// increase vector length
+    pub fn increase(&self, amount: f32) -> Vec2d {
+        Vec2d::from_polar(self.r() + amount, self.phi())
     }
 }
 
@@ -75,7 +86,7 @@ mod tests {
         type Epsilon = f32;
 
         fn default_epsilon() -> Self::Epsilon {
-            f32::default_epsilon()
+            0.001
         }
 
         fn abs_diff_eq(&self, other: &Self, epsilon: Self::Epsilon) -> bool {
@@ -113,9 +124,9 @@ mod tests {
     }
 
     #[test]
-    fn norm() {
+    fn test_r() {
         let v = Vec2d::new(3., 4.);
-        assert_eq!(v.norm(), 5.);
+        assert_eq!(v.r(), 5.);
     }
 
     #[test]
@@ -141,10 +152,35 @@ mod tests {
     }
 
     #[test]
-    fn test_dir() {
+    fn test_phi() {
         let v = Vec2d::from_polar(1., 7.0*PI/8.0);
         let u = Vec2d::from_polar(1., -7.0*PI/8.0);
-        assert_abs_diff_eq!(v.dir(), 7.0*PI/8.0);
-        assert_abs_diff_eq!(u.dir(), -7.0*PI/8.0);
+        assert_abs_diff_eq!(v.phi(), 7.0*PI/8.0);
+        assert_abs_diff_eq!(u.phi(), -7.0*PI/8.0);
+    }
+
+    #[test]
+    fn test_rotate() {
+        let v = Vec2d::from_polar(1., PI/2.0);
+        assert_abs_diff_eq!(v.rotate(PI/4.), Vec2d::from_polar(1., 3./4.*PI));
+    }
+
+    #[test]
+    fn test_rotate_overflow_right() {
+        let v = Vec2d::from_polar(1., 3./4.*PI);
+        assert_abs_diff_eq!(v.rotate(PI/2.), Vec2d::from_polar(1., -3./4.*PI));
+    }
+
+    #[test]
+    fn test_rotate_overflow_left() {
+        let v = Vec2d::from_polar(1., -3./4.*PI);
+        assert_abs_diff_eq!(v.rotate(-PI/2.), Vec2d::from_polar(1., 3./4.*PI));
+    }
+
+    #[test]
+    fn test_increase() {
+        let v = Vec2d::from_polar(1., 0.);
+        assert_abs_diff_eq!(v.increase(3.), Vec2d::from_polar(4., 0.));
+        assert_abs_diff_eq!(v.increase(-3.), Vec2d::from_polar(0., 0.));
     }
 }

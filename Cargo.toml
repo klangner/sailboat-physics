@@ -10,3 +10,4 @@ edition = "2021"
 
 [dev-dependencies]
 approx="0.5"
+macroquad = "0.3"

@@ -30,13 +30,13 @@ fn airfoil_coefficient(angle_of_attack: f32, table: &[f32; 11]) -> f32 {
 ///     Cl - Lift coefficient for specific angle of attack
 pub fn lift(wind: Vec2d, sail_area: f32, sail_angle: f32) -> Vec2d {
     let sail_vec = Vec2d::from_polar(sail_angle, 1.);
-    let wind_speed = wind.norm();
+    let wind_speed = wind.r();
     let aoa = wind.neg().angle(&sail_vec);
     let cl = airfoil_coefficient(aoa.abs(), &LIFT_COEFF);
     print!("{:?}, {:?}", aoa.abs(), cl);
 
     let lm = 0.5 * AIR_DENSITY * wind_speed*wind_speed * sail_area * cl;
-    let phi = if aoa > 0.0 { wind.dir() + PI/2.0 } else { wind.dir() - PI/2.0 };
+    let phi = if aoa > 0.0 { wind.phi() + PI/2.0 } else { wind.phi() - PI/2.0 };
     Vec2d::from_polar(lm, phi)
 }
 
@@ -58,13 +58,13 @@ mod tests {
     #[test]
     fn lift_1() {
         let l = lift(Vec2d::from_polar(1., -PI), 1., PI/4.); 
-        assert_abs_diff_eq!(l.dir(), PI/2.0, epsilon=0.001);
+        assert_abs_diff_eq!(l.phi(), PI/2.0, epsilon=0.001);
     }
 
     #[test]
     fn lift_2() {
         let l = lift(Vec2d::from_polar(1., -3.0*PI/4.0), 1., 0.0); 
-        assert_abs_diff_eq!(l.dir(), -PI/4.0, epsilon=0.001);
+        assert_abs_diff_eq!(l.phi(), -PI/4.0, epsilon=0.001);
     }
 
 }
