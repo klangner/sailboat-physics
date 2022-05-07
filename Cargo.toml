@@ -1,6 +1,13 @@
 [package]
 name = "sailboat-physics"
 version = "0.1.0"
+authors = ["Krzysztof Langner <klangner@gmail.com>"]
+description = "Implementation of physics of the sailboat"
+keywords = ["sailboat", "sim", "physics"]
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/klangner/sailboat-physics.rs"
+homepage = "https://github.com/klangner/sailboat-physics.rs"
+documentation = "https://docs.rs/sailboat-physics"
 edition = "2021"
 
 
