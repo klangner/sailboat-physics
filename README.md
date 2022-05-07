@@ -1,5 +1,6 @@
 # Sailboat Physics calculation
 
+[![Rust](https://github.com/klangner/sailboat-physiscs.rs/actions/workflows/rust.yml/badge.svg)](https://github.com/klangner/sailboat-physiscs.rs/actions/workflows/rust.yml)
 [![Crates.io](https://img.shields.io/crates/v/sailboat-physiscs.svg)](https://crates.io/crates/sailboat-physiscs) 
 [![sailsim.rs](https://docs.rs/sailboat-physiscs/badge.svg)](https://docs.rs/sailboat-physiscs/)
 
@@ -10,7 +11,7 @@ This library uses physics to calculates forces on the sailboat.
 
 Add dependency to your project
 ```
-sailboat-physiscs = "0.1"
+sailboat-physics = "0.1"
 ```
 
 # License
