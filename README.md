@@ -1,6 +1,6 @@
 # Sailboat Physics calculation
 
-[![Rust](https://github.com/klangner/sailboat-physiscs.rs/actions/workflows/rust.yml/badge.svg)](https://github.com/klangner/sailboat-physiscs.rs/actions/workflows/rust.yml)
+[![Rust](https://github.com/klangner/sailboat-physiscs/actions/workflows/rust.yml/badge.svg)](https://github.com/klangner/sailboat-physiscs/actions/workflows/rust.yml)
 [![Crates.io](https://img.shields.io/crates/v/sailboat-physiscs.svg)](https://crates.io/crates/sailboat-physiscs) 
 [![sailsim.rs](https://docs.rs/sailboat-physiscs/badge.svg)](https://docs.rs/sailboat-physiscs/)
 
