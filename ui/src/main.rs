@@ -5,17 +5,27 @@ mod mqh;
 
 use std::f32::consts::PI;
 use macroquad::prelude::*;
-use sailboat_physics::{goemetry::Vec2d, apparent_wind, aerodynamics};
+use sailboat_physics::{Sailboat, aerodynamics};
+use sailboat_physics::goemetry::Vec2d;
 
 
 const WINDOW_WIDTH: i32 = 1024;
 const WINDOW_HEIGHT: i32 = 800;
 
-
 #[derive(PartialEq, Copy, Clone, Debug)]
 enum View {
     AparentWindView,
     LiftAndDragView
+}
+
+fn boat_shape() -> Vec<Vec2d> {
+    vec![
+        Vec2d::new(-20., 80.), 
+        Vec2d::new(20., 80.), 
+        Vec2d::new(30., 10.), 
+        Vec2d::new(0., -100.),
+        Vec2d::new(-30., 10.),
+    ] 
 }
 
 
@@ -44,20 +54,20 @@ fn draw_wind_widget(wind: &Vec2d) {
 }
 
 // Draw boat at the center of the screen
-fn draw_boat(boat: &Vec2d) {
-    let bv = Vec2d::from_polar(50.0*boat.r(), boat.phi());
+fn draw_boat(boat: &Sailboat) {
+    let bv = Vec2d::from_polar(50.0*boat.velocity.r(), boat.velocity.phi());
     let cx = WINDOW_WIDTH as f32/2.0;
     let cy = WINDOW_HEIGHT as f32/2.0;
-    let shape:Vec<Vec2d> = vec![Vec2d::new(-20., 40.), Vec2d::new(20., 40.), Vec2d::new(0., -50.)];
-    mqh::draw_shape(cx, cy, &shape, boat.phi(), 2., WHITE);
+    let shape = boat_shape();
+    mqh::draw_shape(cx, cy, &shape, boat.velocity.phi(), 2., WHITE);
 
     draw_vector(cx, cy, &bv, DARKGRAY);
     // print_vector_info("Sail", &sail, 70.0);
 }
 
 // draw vectors for verification of apparent wind
-fn apparent_wind_view(boat_velocity: &Vec2d, wind: &Vec2d, aw: &Vec2d) {
-    let h = Vec2d::from_polar(50.0*boat_velocity.r(), boat_velocity.neg().phi());
+fn apparent_wind_view(boat: &Sailboat, wind: &Vec2d, aw: &Vec2d) {
+    let h = Vec2d::from_polar(50.0*boat.velocity.r(), boat.velocity.neg().phi());
     let w = Vec2d::from_polar(50.0*wind.r(), wind.phi());
     let a = Vec2d::from_polar(50.0*aw.r(), aw.phi());
     let cx = WINDOW_WIDTH as f32/2.0;
@@ -98,7 +108,7 @@ async fn main() {
 
     // 5m/s from North
     let mut wind = Vec2d::from_polar(3.0, -3.0*PI/4.0);
-    let mut boat = Vec2d::from_polar(3.0, 0.0);
+    let mut boat = Sailboat::new(Vec2d::from_polar(3.0, 0.0), 0.);
     let mut sail = Vec2d::from_polar(1.0, PI/4.0);
 
     let mut mode: View = View::LiftAndDragView;
@@ -134,16 +144,16 @@ async fn main() {
         }
         // Boat
         if is_key_down(KeyCode::D) {
-            boat = boat.rotate(dt / 5.0)
+            boat = boat.turn(dt / 5.0)
         }
         if is_key_down(KeyCode::A) {
-            boat = boat.rotate(-dt / 5.0)
+            boat = boat.turn(-dt / 5.0)
         }
         if is_key_down(KeyCode::W) {
-            boat = boat.increase(dt)
+            boat = boat.push(dt)
         }
         if is_key_down(KeyCode::S) {
-            boat = boat.increase(-dt)
+            boat = boat.push(-dt)
         }
         // Sail
         if is_key_down(KeyCode::LeftBracket) {
@@ -154,8 +164,8 @@ async fn main() {
         }
 
         // Update state
-        let aw = apparent_wind(&boat, &wind);
-        let lift = aerodynamics::lift(&aw, 1.0, boat.phi());
+        let aw = boat.apparent_wind(&wind);
+        let lift = aerodynamics::lift(&aw, 1.0, boat.velocity.phi());
 
         // Draw 
         clear_background(SKYBLUE);

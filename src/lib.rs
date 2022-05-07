@@ -13,13 +13,9 @@ pub struct Wind {
     pub velocity: Vec2d,
 }
 
-pub struct Sail {
-}
-
 pub struct Sailboat {
-}
-
-pub struct SailboatState {
+    pub velocity: Vec2d,
+    pub sail_angle: f32,
 }
 
 
@@ -41,14 +37,24 @@ impl Wind {
 }
 
 impl Sailboat {
-    pub fn new() -> Sailboat {
-        Sailboat { }
+    pub fn new(velocity: Vec2d, sail_angle: f32) -> Sailboat {
+        Sailboat {velocity, sail_angle}
     }
-}
 
+    // Apparent wind on the boat
+    pub fn apparent_wind(&self, wind: &Vec2d) -> Vec2d {
+        self.velocity.neg().add(wind)
+    }
 
-pub fn apparent_wind(boat_velocity: &Vec2d, wind: &Vec2d) -> Vec2d {
-    boat_velocity.neg().add(wind)
+    pub fn turn(&self, phi: f32) -> Sailboat {
+        let v = self.velocity.rotate(phi);
+        Sailboat { velocity: v, sail_angle: self.sail_angle }
+    }
+
+    pub fn push(&self, amount: f32) -> Sailboat {
+        let v = self.velocity.increase(amount);
+        Sailboat { velocity: v, sail_angle: self.sail_angle }
+    }
 }
 
 // ----------------------------------------------------------------------------
