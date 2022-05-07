@@ -3,13 +3,21 @@
 
 use std::f32::consts::PI;
 use macroquad::prelude::*;
-use sailboat_physics::{goemetry::Vec2d, apparent_wind};
+use sailboat_physics::{goemetry::Vec2d, apparent_wind, aerodynamics};
 
 
 const WINDOW_WIDTH: i32 = 1024;
 const WINDOW_HEIGHT: i32 = 800;
 
 
+#[derive(PartialEq, Copy, Clone, Debug)]
+enum View {
+    AparentWindView,
+    LiftAndDragView
+}
+
+
+// Print vector info on the screen
 fn print_vector_info(name: &str, v: &Vec2d, pos: f32) {
     let phi = (v.phi() / PI * 180.0).round() as i32;
     let r = v.r();
@@ -17,6 +25,7 @@ fn print_vector_info(name: &str, v: &Vec2d, pos: f32) {
     draw_text(&text, 20.0, pos, 25.0, DARKGRAY);
 }
 
+// draw arrow
 fn draw_arrow(x: f32, y: f32, dx: f32, dy: f32, color: Color) {
     let ax = 0.1 * dx;
     let ay = 0.1 * dy;
@@ -25,11 +34,12 @@ fn draw_arrow(x: f32, y: f32, dx: f32, dy: f32, color: Color) {
     draw_line( x + dx, y + dy, x + 0.9*dx-ay, y + 0.9*dy+ax,  3.0, color);
 }
 
+// Draw vector (Convert coords)
 fn draw_vector(x: f32, y: f32, v: &Vec2d, color: Color){
     draw_arrow(x, y, v.y, -v.x, color)
 }
 
-
+// Draw Wind widget
 fn draw_wind_widget(wind: &Vec2d) {
     let phi = (wind.phi() / PI * 180.0).round() as i32;
     let r = wind.r();
@@ -40,18 +50,24 @@ fn draw_wind_widget(wind: &Vec2d) {
     draw_text(&format!("{phi}deg"), 900.0, 180.0, 30.0, DARKGRAY);
 }
 
-
+// Draw boat at the center of the screen
 fn draw_boat(boat: &Vec2d) {
     let bv = Vec2d::from_polar(50.0*boat.r(), boat.phi());
     let cx = WINDOW_WIDTH as f32/2.0;
     let cy = WINDOW_HEIGHT as f32/2.0;
+    let shape:Vec<Vec2d> = vec![Vec2d::new(-20., 40.), Vec2d::new(20., 40.), Vec2d::new(0., -50.)].iter()
+        .map(|v| v.rotate(boat.phi()))
+        .collect();
+    draw_line(shape[0].x+cx, shape[0].y+cy, shape[1].x+cx, shape[1].y+cy, 2., WHITE);
+    draw_line(shape[1].x+cx, shape[1].y+cy, shape[2].x+cx, shape[2].y+cy, 2., WHITE);
+    draw_line(shape[2].x+cx, shape[2].y+cy, shape[0].x+cx, shape[0].y+cy, 2., WHITE);
+
     draw_vector(cx, cy, &bv, DARKGRAY);
-    print_vector_info("Boat", &boat, 45.0);
     // print_vector_info("Sail", &sail, 70.0);
 }
 
-
-fn draw_apparent_wind(boat_velocity: &Vec2d, wind: &Vec2d, aw: &Vec2d) {
+// draw vectors for verification of apparent wind
+fn apparent_wind_view(boat_velocity: &Vec2d, wind: &Vec2d, aw: &Vec2d) {
     let h = Vec2d::from_polar(50.0*boat_velocity.r(), boat_velocity.neg().phi());
     let w = Vec2d::from_polar(50.0*wind.r(), wind.phi());
     let a = Vec2d::from_polar(50.0*aw.r(), aw.phi());
@@ -62,6 +78,19 @@ fn draw_apparent_wind(boat_velocity: &Vec2d, wind: &Vec2d, aw: &Vec2d) {
     draw_vector(cx, cy, &h, LIGHTGRAY);
     draw_vector(cx, cy, &w, BLUE);
     draw_vector(cx, cy, &a, RED);
+}
+
+// Visualize lift for verification
+fn liftanddrag_view(lift: &Vec2d, aw: &Vec2d) {
+    let l = Vec2d::from_polar(10.0*lift.r(), lift.phi());
+    let a = Vec2d::from_polar(50.0*aw.r(), aw.phi());
+    let cx = WINDOW_WIDTH as f32/2.0;
+    let cy = WINDOW_HEIGHT as f32/2.0;
+
+    print_vector_info("Apparent wind", &aw, 70.0);
+    print_vector_info("Lift", &l, 90.0);
+    draw_vector(cx, cy, &l, RED);
+    draw_vector(cx, cy, &a, BLUE);
 }
 
 
@@ -83,6 +112,8 @@ async fn main() {
     let mut boat = Vec2d::from_polar(3.0, 0.0);
     let mut sail = Vec2d::from_polar(1.0, PI/4.0);
 
+    let mut mode: View = View::LiftAndDragView;
+
     loop {
 
         let dt = get_frame_time();
@@ -91,6 +122,13 @@ async fn main() {
         #[cfg(not(target_arch = "wasm32"))]
         if is_key_down(KeyCode::Q) | is_key_down(KeyCode::Escape) {
             break;
+        }
+        // change mode
+        if is_key_released(KeyCode::Key1) {
+            mode = View::AparentWindView
+        }
+        if is_key_released(KeyCode::Key2) {
+            mode = View::LiftAndDragView
         }
         // Wind
         if is_key_down(KeyCode::Left) {
@@ -126,12 +164,19 @@ async fn main() {
             sail = sail.rotate(dt / 10.0)
         }
 
+        // Update state
+        let aw = apparent_wind(&boat, &wind);
+        let lift = aerodynamics::lift(&aw, 1.0, boat.phi());
+
         // Draw 
         clear_background(SKYBLUE);
         draw_wind_widget(&wind);
         draw_boat(&boat);
-        let aw = apparent_wind(&boat, &wind);
-        draw_apparent_wind(&boat, &wind, &aw);
+        if mode == View::AparentWindView {
+            apparent_wind_view(&boat, &wind, &aw);
+        } else if mode == View::LiftAndDragView {
+            liftanddrag_view(&lift, &aw);
+        }
 
         next_frame().await
     }
