@@ -1,6 +1,8 @@
 // Basic boat visualization
 //
 
+mod mqh;
+
 use std::f32::consts::PI;
 use macroquad::prelude::*;
 use sailboat_physics::{goemetry::Vec2d, apparent_wind, aerodynamics};
@@ -25,18 +27,9 @@ fn print_vector_info(name: &str, v: &Vec2d, pos: f32) {
     draw_text(&text, 20.0, pos, 25.0, DARKGRAY);
 }
 
-// draw arrow
-fn draw_arrow(x: f32, y: f32, dx: f32, dy: f32, color: Color) {
-    let ax = 0.1 * dx;
-    let ay = 0.1 * dy;
-    draw_line(x, y, x + dx, y + dy, 3.0, color);
-    draw_line( x + dx, y + dy, x + 0.9*dx+ay, y + 0.9*dy-ax,  3.0, color);
-    draw_line( x + dx, y + dy, x + 0.9*dx-ay, y + 0.9*dy+ax,  3.0, color);
-}
-
 // Draw vector (Convert coords)
 fn draw_vector(x: f32, y: f32, v: &Vec2d, color: Color){
-    draw_arrow(x, y, v.y, -v.x, color)
+    mqh::draw_arrow(x, y, v.y, -v.x, 3.0, color)
 }
 
 // Draw Wind widget
@@ -55,12 +48,8 @@ fn draw_boat(boat: &Vec2d) {
     let bv = Vec2d::from_polar(50.0*boat.r(), boat.phi());
     let cx = WINDOW_WIDTH as f32/2.0;
     let cy = WINDOW_HEIGHT as f32/2.0;
-    let shape:Vec<Vec2d> = vec![Vec2d::new(-20., 40.), Vec2d::new(20., 40.), Vec2d::new(0., -50.)].iter()
-        .map(|v| v.rotate(boat.phi()))
-        .collect();
-    draw_line(shape[0].x+cx, shape[0].y+cy, shape[1].x+cx, shape[1].y+cy, 2., WHITE);
-    draw_line(shape[1].x+cx, shape[1].y+cy, shape[2].x+cx, shape[2].y+cy, 2., WHITE);
-    draw_line(shape[2].x+cx, shape[2].y+cy, shape[0].x+cx, shape[0].y+cy, 2., WHITE);
+    let shape:Vec<Vec2d> = vec![Vec2d::new(-20., 40.), Vec2d::new(20., 40.), Vec2d::new(0., -50.)];
+    mqh::draw_shape(cx, cy, &shape, boat.phi(), 2., WHITE);
 
     draw_vector(cx, cy, &bv, DARKGRAY);
     // print_vector_info("Sail", &sail, 70.0);
