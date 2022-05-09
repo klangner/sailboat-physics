@@ -30,11 +30,11 @@ fn boat_shape() -> Vec<Vec2d> {
 
 
 // Print vector info on the screen
-fn print_vector_info(name: &str, v: &Vec2d, pos: f32) {
+fn print_vector_info(name: &str, v: &Vec2d, x: f32, y: f32, color: Color) {
     let phi = (v.phi() / PI * 180.0).round() as i32;
     let r = v.r();
     let text = format!("{name}: r={r:.2}, dir={phi}");
-    draw_text(&text, 20.0, pos, 25.0, DARKGRAY);
+    draw_text(&text, x, y, 25.0, color);
 }
 
 // Draw vector (Convert coords)
@@ -55,25 +55,29 @@ fn draw_wind_widget(wind: &Vec2d) {
 
 // Draw boat at the center of the screen
 fn draw_boat(boat: &Sailboat) {
-    let bv = Vec2d::from_polar(50.0*boat.velocity.r(), boat.velocity.phi());
     let cx = WINDOW_WIDTH as f32/2.0;
     let cy = WINDOW_HEIGHT as f32/2.0;
     let shape = boat_shape();
     mqh::draw_shape(cx, cy, &shape, boat.velocity.phi(), 2., WHITE);
-
-    draw_vector(cx, cy, &bv, DARKGRAY);
-    // print_vector_info("Sail", &sail, 70.0);
+    // draw sail
+    let sail_from = Vec2d::new(0., -60.0).rotate(boat.velocity.phi());
+    let sail_to = Vec2d::new(-30., 70.0).rotate(boat.velocity.phi());
+    draw_line(cx+sail_from.x, cy+sail_from.y, cx+sail_to.x, cy+sail_to.y, 3.0, WHITE);
 }
 
 // draw vectors for verification of apparent wind
 fn apparent_wind_view(boat: &Sailboat, wind: &Vec2d, aw: &Vec2d) {
+    let bv = Vec2d::from_polar(50.0*boat.velocity.r(), boat.velocity.phi());
     let h = Vec2d::from_polar(50.0*boat.velocity.r(), boat.velocity.neg().phi());
     let w = Vec2d::from_polar(50.0*wind.r(), wind.phi());
     let a = Vec2d::from_polar(50.0*aw.r(), aw.phi());
     let cx = WINDOW_WIDTH as f32/2.0;
     let cy = WINDOW_HEIGHT as f32/2.0;
 
-    print_vector_info("Apparent wind", &aw, 70.0);
+    print_vector_info("Boat velocity", &aw, 20.0, 30.0, DARKGRAY);
+    print_vector_info("Head wind", &aw, 20.0, 55.0, LIGHTGRAY);
+    print_vector_info("Apparent wind", &aw, 20.0, 80.0, RED);
+    draw_vector(cx, cy, &bv, DARKGRAY);
     draw_vector(cx, cy, &h, LIGHTGRAY);
     draw_vector(cx, cy, &w, BLUE);
     draw_vector(cx, cy, &a, RED);
@@ -86,8 +90,8 @@ fn liftanddrag_view(lift: &Vec2d, aw: &Vec2d) {
     let cx = WINDOW_WIDTH as f32/2.0;
     let cy = WINDOW_HEIGHT as f32/2.0;
 
-    print_vector_info("Apparent wind", &aw, 70.0);
-    print_vector_info("Lift", &l, 90.0);
+    print_vector_info("Apparent wind", &aw, 20.0, 30.0, BLUE);
+    print_vector_info("Lift", &l, 20.0, 55.0, RED);
     draw_vector(cx, cy, &l, RED);
     draw_vector(cx, cy, &a, BLUE);
 }
