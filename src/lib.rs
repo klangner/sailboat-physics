@@ -1,10 +1,10 @@
 //! All angles in radians with 0 pointing North
 //! 
 
-pub mod goemetry;
+pub mod geometry;
 pub mod aerodynamics;
 
-use goemetry::Vec2d;
+use geometry::Vec2d;
 use std::f32::consts::PI;
 
 
@@ -54,6 +54,10 @@ impl Sailboat {
     pub fn push(&self, amount: f32) -> Sailboat {
         let v = self.velocity.increase(amount);
         Sailboat { velocity: v, sail_angle: self.sail_angle }
+    }
+
+    pub fn rotate_sail(&self, amount: f32) -> Sailboat {
+        Sailboat {velocity: self.velocity, sail_angle: self.sail_angle + amount}
     }
 }
 

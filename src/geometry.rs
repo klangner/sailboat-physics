@@ -78,7 +78,7 @@ impl Vec2d {
 // ----------------------------------------------------------------------------
 #[cfg(test)]
 mod tests {
-    use crate::goemetry::Vec2d;
+    use crate::geometry::Vec2d;
     use std::f32::consts::PI;
     use approx::{assert_abs_diff_eq, AbsDiffEq};
 

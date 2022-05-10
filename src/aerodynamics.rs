@@ -1,7 +1,7 @@
 /// Aerodynamic implementation for the sail
 
 use std::f32::consts::PI;
-use crate::goemetry::Vec2d;
+use crate::geometry::Vec2d;
 
 
 const AIR_DENSITY: f32 = 1.;

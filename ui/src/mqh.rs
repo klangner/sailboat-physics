@@ -1,7 +1,7 @@
 //! Helper functions for drawing shapes in microquad apps
 
 use macroquad::prelude::*;
-use sailboat_physics::goemetry::Vec2d;
+use sailboat_physics::geometry::Vec2d;
 
 
 // draw arrow
