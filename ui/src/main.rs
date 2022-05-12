@@ -69,34 +69,37 @@ fn draw_boat(boat: &Sailboat) {
 }
 
 // Main view
-fn main_view(lift: &Vec2d, drag: &Vec2d, aw: &Vec2d) {
+fn main_view(boat: &Sailboat, lift: &Vec2d, drag: &Vec2d, aw: &Vec2d) {
     let total_force = lift.add(drag);
-    let t = Vec2d::from_polar(10.0*total_force.r(), total_force.phi());
-    let a = Vec2d::from_polar(50.0*aw.r(), aw.phi());
+    let bv = boat.velocity.multiply(50.0);
+    let t = total_force.multiply(10.0);
+    let a = aw.multiply(50.0);
     let cx = WINDOW_WIDTH as f32/2.0;
     let cy = WINDOW_HEIGHT as f32/2.0;
 
-    print_vector_info("Apparent wind", &aw, 20.0, 30.0, DARKBLUE);
-    print_vector_info("Total force", &t, 20.0, 55.0, RED);
+    print_vector_info("Boat velocity", &aw, 20.0, 30.0, LIGHTGRAY);
+    print_vector_info("Apparent wind", &aw, 20.0, 55.0, DARKBLUE);
+    print_vector_info("Total force", &t, 20.0, 80.0, LIME);
+    draw_vector(cx, cy, &bv, LIGHTGRAY);
     draw_vector(cx, cy, &a, DARKBLUE);
-    draw_vector(cx, cy, &t, RED);
+    draw_vector(cx, cy, &t, LIME);
 }
 
 
 // draw vectors for verification of apparent wind
 fn apparent_wind_view(boat: &Sailboat, wind: &Vec2d, aw: &Vec2d) {
-    let bv = Vec2d::from_polar(50.0*boat.velocity.r(), boat.velocity.phi());
-    let h = Vec2d::from_polar(50.0*boat.velocity.r(), boat.velocity.neg().phi());
-    let w = Vec2d::from_polar(50.0*wind.r(), wind.phi());
-    let a = Vec2d::from_polar(50.0*aw.r(), aw.phi());
+    let bv = boat.velocity.multiply(50.0);
+    let h = boat.velocity.neg().multiply(50.0);
+    let w = wind.multiply(50.0);
+    let a = aw.multiply(50.0);
     let cx = WINDOW_WIDTH as f32/2.0;
     let cy = WINDOW_HEIGHT as f32/2.0;
 
-    print_vector_info("Boat velocity", &aw, 20.0, 30.0, DARKGRAY);
-    print_vector_info("Head wind", &aw, 20.0, 55.0, LIGHTGRAY);
+    print_vector_info("Boat velocity", &aw, 20.0, 30.0, LIGHTGRAY);
+    print_vector_info("Head wind", &aw, 20.0, 55.0, BLUE);
     print_vector_info("Apparent wind", &aw, 20.0, 80.0, DARKBLUE);
-    draw_vector(cx, cy, &bv, DARKGRAY);
-    draw_vector(cx, cy, &h, LIGHTGRAY);
+    draw_vector(cx, cy, &bv, LIGHTGRAY);
+    draw_vector(cx, cy, &h, BLUE);
     draw_vector(cx, cy, &w, BLUE);
     draw_vector(cx, cy, &a, DARKBLUE);
 }
@@ -104,19 +107,19 @@ fn apparent_wind_view(boat: &Sailboat, wind: &Vec2d, aw: &Vec2d) {
 // Visualize lift and drag
 fn liftanddrag_view(lift: &Vec2d, drag: &Vec2d, aw: &Vec2d) {
     let total_force = lift.add(drag);
-    let l = Vec2d::from_polar(10.0*lift.r(), lift.phi());
-    let d = Vec2d::from_polar(10.0*drag.r(), drag.phi());
-    let t = Vec2d::from_polar(10.0*total_force.r(), total_force.phi());
-    let a = Vec2d::from_polar(50.0*aw.r(), aw.phi());
+    let l = lift.multiply(10.0);
+    let d = drag.multiply(10.0);
+    let t = total_force.multiply(10.0);
+    let a = aw.multiply(50.0);
     let cx = WINDOW_WIDTH as f32/2.0;
     let cy = WINDOW_HEIGHT as f32/2.0;
 
     print_vector_info("Apparent wind", &aw, 20.0, 30.0, DARKBLUE);
-    print_vector_info("total force", &t, 20.0, 55.0, RED);
+    print_vector_info("total force", &t, 20.0, 55.0, LIME);
     draw_vector(cx, cy, &a, DARKBLUE);
-    draw_vector(cx, cy, &l, PINK);
-    draw_vector(cx, cy, &d, PINK);
-    draw_vector(cx, cy, &t, RED);
+    draw_vector(cx, cy, &l, GREEN);
+    draw_vector(cx, cy, &d, GREEN);
+    draw_vector(cx, cy, &t, LIME);
 }
 
 
@@ -202,7 +205,7 @@ async fn main() {
         draw_wind_widget(&wind);
         draw_boat(&boat);
         if mode == View::MainView {
-            main_view(&lift, &drag, &aw);
+            main_view(&boat, &lift, &drag, &aw);
         } else if mode == View::AparentWindView {
             apparent_wind_view(&boat, &wind, &aw);
         } else if mode == View::LiftAndDragView {

@@ -72,6 +72,11 @@ impl Vec2d {
     pub fn increase(&self, amount: f32) -> Vec2d {
         Vec2d::from_polar(self.r() + amount, self.phi())
     }
+
+    /// multiply vector by scalar
+    pub fn multiply(&self, v: f32) -> Vec2d {
+        Vec2d::new(v*self.x, v*self.y)
+    }
 }
 
 
