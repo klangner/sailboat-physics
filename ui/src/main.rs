@@ -16,6 +16,7 @@ const WINDOW_HEIGHT: i32 = 800;
 enum View {
     MainView,
     AparentWindView,
+    LiftAndDragView,
 }
 
 fn boat_shape() -> Vec<Vec2d> {
@@ -67,17 +68,18 @@ fn draw_boat(boat: &Sailboat) {
     // draw_line(cx, cy, cx+sail_vec.y, cy-sail_vec.x, 3.0, WHITE);
 }
 
-// Visualize lift for verification
-fn main_view(lift: &Vec2d, aw: &Vec2d) {
-    let l = Vec2d::from_polar(10.0*lift.r(), lift.phi());
+// Main view
+fn main_view(lift: &Vec2d, drag: &Vec2d, aw: &Vec2d) {
+    let total_force = lift.add(drag);
+    let t = Vec2d::from_polar(10.0*total_force.r(), total_force.phi());
     let a = Vec2d::from_polar(50.0*aw.r(), aw.phi());
     let cx = WINDOW_WIDTH as f32/2.0;
     let cy = WINDOW_HEIGHT as f32/2.0;
 
-    print_vector_info("Apparent wind", &aw, 20.0, 30.0, BLUE);
-    print_vector_info("Lift", &l, 20.0, 55.0, RED);
-    draw_vector(cx, cy, &l, RED);
-    draw_vector(cx, cy, &a, BLUE);
+    print_vector_info("Apparent wind", &aw, 20.0, 30.0, DARKBLUE);
+    print_vector_info("Total force", &t, 20.0, 55.0, RED);
+    draw_vector(cx, cy, &a, DARKBLUE);
+    draw_vector(cx, cy, &t, RED);
 }
 
 
@@ -92,12 +94,31 @@ fn apparent_wind_view(boat: &Sailboat, wind: &Vec2d, aw: &Vec2d) {
 
     print_vector_info("Boat velocity", &aw, 20.0, 30.0, DARKGRAY);
     print_vector_info("Head wind", &aw, 20.0, 55.0, LIGHTGRAY);
-    print_vector_info("Apparent wind", &aw, 20.0, 80.0, RED);
+    print_vector_info("Apparent wind", &aw, 20.0, 80.0, DARKBLUE);
     draw_vector(cx, cy, &bv, DARKGRAY);
     draw_vector(cx, cy, &h, LIGHTGRAY);
     draw_vector(cx, cy, &w, BLUE);
-    draw_vector(cx, cy, &a, RED);
+    draw_vector(cx, cy, &a, DARKBLUE);
 }
+
+// Visualize lift and drag
+fn liftanddrag_view(lift: &Vec2d, drag: &Vec2d, aw: &Vec2d) {
+    let total_force = lift.add(drag);
+    let l = Vec2d::from_polar(10.0*lift.r(), lift.phi());
+    let d = Vec2d::from_polar(10.0*drag.r(), drag.phi());
+    let t = Vec2d::from_polar(10.0*total_force.r(), total_force.phi());
+    let a = Vec2d::from_polar(50.0*aw.r(), aw.phi());
+    let cx = WINDOW_WIDTH as f32/2.0;
+    let cy = WINDOW_HEIGHT as f32/2.0;
+
+    print_vector_info("Apparent wind", &aw, 20.0, 30.0, DARKBLUE);
+    print_vector_info("total force", &t, 20.0, 55.0, RED);
+    draw_vector(cx, cy, &a, DARKBLUE);
+    draw_vector(cx, cy, &l, PINK);
+    draw_vector(cx, cy, &d, PINK);
+    draw_vector(cx, cy, &t, RED);
+}
+
 
 fn window_conf() -> Conf {
     Conf {
@@ -113,8 +134,8 @@ fn window_conf() -> Conf {
 async fn main() {
 
     // 5m/s from North
-    let mut wind = Vec2d::from_polar(3.0, -3.0*PI/4.0);
-    let mut boat = Sailboat::new(Vec2d::from_polar(3.0, 0.0), PI/8.0);
+    let mut wind = Vec2d::from_polar(3.0, -PI/2.0);
+    let mut boat = Sailboat::new(Vec2d::from_polar(3.0, 0.0), PI/16.0);
 
     let mut mode: View = View::MainView;
 
@@ -131,8 +152,11 @@ async fn main() {
         if is_key_released(KeyCode::Key1) {
             mode = View::MainView
         }
-        if is_key_released(KeyCode::Key2) {
+        else if is_key_released(KeyCode::Key2) {
             mode = View::AparentWindView
+        }
+        else if is_key_released(KeyCode::Key3) {
+            mode = View::LiftAndDragView
         }
         // Wind
         if is_key_down(KeyCode::Left) {
@@ -162,24 +186,27 @@ async fn main() {
         }
         // Sail
         if is_key_down(KeyCode::LeftBracket) {
-            boat = boat.rotate_sail(-dt / 10.0)
+            boat = boat.rotate_sail(dt / 10.0)
         }
         if is_key_down(KeyCode::RightBracket) {
-            boat = boat.rotate_sail(dt / 10.0)
+            boat = boat.rotate_sail(-dt / 10.0)
         }
 
         // Update state
         let aw = boat.apparent_wind(&wind);
         let lift = aerodynamics::lift(&aw, 1.0, boat.velocity.phi()+boat.sail_angle);
+        let drag = aerodynamics::drag(&aw, 1.0, boat.velocity.phi()+boat.sail_angle);
 
         // Draw 
         clear_background(SKYBLUE);
         draw_wind_widget(&wind);
         draw_boat(&boat);
         if mode == View::MainView {
-            main_view(&lift, &aw);
+            main_view(&lift, &drag, &aw);
         } else if mode == View::AparentWindView {
             apparent_wind_view(&boat, &wind, &aw);
+        } else if mode == View::LiftAndDragView {
+            liftanddrag_view(&lift, &drag, &aw);
         }
 
         next_frame().await
